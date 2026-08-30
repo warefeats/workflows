@@ -1,0 +1,37 @@
+name: Bun verify
+
+on:
+  workflow_call:
+    inputs:
+      bun-version:
+        type: string
+        default: "1.4.0"
+      smoke-command:
+        type: string
+        default: ""
+      build:
+        type: boolean
+        default: false
+      runs-on:
+        type: string
+        default: ubuntu-latest
+
+jobs:
+  verify:
+    runs-on: ${{ inputs.runs-on }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ inputs.bun-version }}
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run test
+      - name: Smoke test
+        if: inputs.smoke-command != ''
+        run: ${{ inputs.smoke-command }}
+      - name: Build
+        if: inputs.build
+        run: bun run build
